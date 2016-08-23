@@ -7,6 +7,7 @@ class Rack::Maintenance
   def initialize(app, options={})
     @app     = app
     @options = options
+    @redis = options[:redis]
 
     raise(ArgumentError, 'Must specify a :file') unless options[:file]
   end
@@ -35,7 +36,8 @@ private ######################################################################
   end
 
   def maintenance?
-    environment ? ENV[environment] : File.exists?(file)
+    maintenance_mode = @redis.get("MaintenanceMode").to_s
+    !maintenance_mode.blank?
   end
 
   def path_in_app(env)
